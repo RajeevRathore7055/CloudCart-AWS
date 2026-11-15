@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Syllabus Mapping{% endblock %}
+{% set rows = [
+ ('I','Definition, evolution, characteristics','CloudCart runs as a service reached over the internet; resources are rented on demand','Cloud Lab architecture + AWS guide','Implemented (when deployed)'),
+ ('I','Parallel and distributed computing','Gunicorn runs several worker processes; multiple EC2 servers behind a load balancer','Explained; ALB/ASG optional','Conceptual'),
+ ('I','Elasticity, on-demand provisioning','Launch or stop EC2 in minutes; Auto Scaling adds servers when CPU is high','Docs: optional ALB + ASG','Optional'),
+ ('II','SOA, web services, REST','JSON API: /api/products, /health, /cloud/status, /docs','Cloud Lab section 6, Swagger UI','Implemented'),
+ ('II','Publish/subscribe','Not used in the code. Would be SNS/SQS for order notifications','Explained only','Conceptual'),
+ ('II','Virtualization (CPU, memory, I/O)','EC2 instance is a VM on a hypervisor; instance type = virtual CPU + RAM','Cloud Lab section 5','Conceptual (EC2 is real)'),
+ ('II','Disaster recovery','RDS backups/snapshots, GitHub + script redeploy, S3 images','Cloud Lab section 7; docs','Implemented as configuration; recovery not tested'),
+ ('III','Layered architecture, NIST reference model','Presentation (Nginx/UI), application (FastAPI), data (RDS/S3)','Architecture diagram','Conceptual'),
+ ('III','Public, private, hybrid cloud','CloudCart uses AWS = public cloud; OpenStack would be private','Unit V page','Conceptual'),
+ ('III','IaaS, PaaS, SaaS','EC2 (IaaS), RDS (managed), CloudCart itself (SaaS)','Cloud Lab section 4','Implemented / explained'),
+ ('III','Cloud storage, Storage-as-a-Service, S3','Admin uploads product images to S3 through Boto3','Admin > Add product (with S3 configured)','Implemented (needs S3 setup)'),
+ ('III','Architectural challenges','Statelessness, shared sessions, image storage, secrets','Docs/Architecture','Explained'),
+ ('IV','Resource provisioning','Create EC2/RDS/S3 through console steps; scripts install the app','docs/AWS_DEPLOYMENT.md','Implemented'),
+ ('IV','Inter-cloud resource management','Not applicable to a single-cloud app','Cloud federation diagram','Conceptual'),
+ ('IV','Cloud and SaaS security','Password hashing, CSRF tokens, secure headers, SQL parameters, login throttling','Code + tests','Implemented'),
+ ('IV','IAM, governance, VM security','EC2 instance role with least-privilege S3 policy; security groups','docs/IAM_POLICY.md','Implemented (when deployed)'),
+ ('V','MapReduce, Hadoop','Product-wise sales computed with map, shuffle and reduce steps','MapReduce Demo page','Simulated (no Hadoop cluster)'),
+ ('V','VirtualBox, Google App Engine, OpenStack','Comparison with how CloudCart is hosted','Unit V page','Conceptual'),
+ ('V','Cloud federation','Two clouds sharing services; not implemented','Unit V diagram','Conceptual'),
+] %}
+{% block content %}
+<div class="admin-head"><div><div class="eyebrow">Cloud Lab</div><h1 class="page-title">Syllabus <span class="text-grad">Mapping</span></h1>
+<p class="text-muted mb-0">Honest view: some topics are implemented in the app, some simulated, some only explained.</p></div></div>
+{% include "cloud/_nav.html" %}
+<div class="glass table-wrap"><table class="table cc-table"><thead><tr><th>Unit</th><th>Concept</th><th>CloudCart example</th><th>Where to see it</th><th>Status</th></tr></thead><tbody>
+{% for u,c,e,d,s in rows %}<tr><td><span class="chip">Unit {{ u }}</span></td><td class="fw-semibold">{{ c }}</td><td class="text-muted">{{ e }}</td><td class="text-muted">{{ d }}</td>
+<td><span class="chip {{ 'green' if s.startswith('Implemented') else 'violet' if s.startswith('Simulated') else 'cyan' if s.startswith('Optional') else 'amber' }}">{{ s }}</span></td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

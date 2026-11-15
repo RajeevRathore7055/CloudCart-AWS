@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}MapReduce Demo{% endblock %}
+{% block content %}
+<div class="admin-head"><div><div class="eyebrow">Unit V</div><h1 class="page-title">MapReduce <span class="text-grad">Simulation</span></h1>
+<p class="text-muted mb-0">Educational simulation in plain Python. It is <b>not</b> a Hadoop cluster.</p></div>
+<div class="d-flex gap-2"><a class="btn btn-ghost btn-sm" href="/cloud/mapreduce?source=sample">Use sample data</a><a class="btn btn-ghost btn-sm" href="/cloud/mapreduce?source=live">Use real orders</a></div></div>
+{% include "cloud/_nav.html" %}
+<p><span class="chip {{ 'green' if live else 'violet' }}">{{ 'Source: real order data from the database' if live else 'Source: built-in sample data (no orders yet or sample selected)' }}</span> <span class="text-muted small">{{ n }} input records</span></p>
+<div class="row g-3 mb-4">
+  <div class="col-lg-3"><div class="glass glass-pad h-100"><div class="eyebrow">1. Input</div><p class="small text-muted">Order lines: product, quantity, price.</p>
+    <div style="max-height:260px;overflow:auto"><table class="table cc-table table-sm"><tbody>{% for x in r.input[:12] %}<tr><td>{{ x.product }}</td><td>&times;{{ x.qty }}</td></tr>{% endfor %}</tbody></table></div></div></div>
+  <div class="col-lg-3"><div class="glass glass-pad h-100"><div class="eyebrow">2. Map</div><p class="small text-muted">Each line becomes a key/value pair: <code>(product, (units, sales))</code>.</p>
+    <div style="max-height:260px;overflow:auto" class="small">{% for k,v in r.mapped[:12] %}<div><code>({{ k }}, ({{ v[0] }}, {{ v[1]|round|int }}))</code></div>{% endfor %}</div></div></div>
+  <div class="col-lg-3"><div class="glass glass-pad h-100"><div class="eyebrow">3. Shuffle</div><p class="small text-muted">All pairs with the same key are grouped together.</p>
+    <div class="small">{% for k, vals in r.shuffled.items() %}<div class="mb-2"><b>{{ k }}</b> &rarr; {{ vals|length }} value(s)</div>{% endfor %}</div></div></div>
+  <div class="col-lg-3"><div class="glass glass-pad h-100"><div class="eyebrow">4. Reduce</div><p class="small text-muted">Each group is summed into one result.</p>
+    <div class="small">{% for x in r.reduced %}<div class="mb-2"><b>{{ x.product }}</b>: {{ x.units }} units, {{ x.sales|inr }}</div>{% endfor %}</div></div></div>
+</div>
+<div class="glass glass-pad"><h5 class="mb-3">Result: total sales per product</h5>
+  {% for x in r.reduced %}<div class="mb-3"><div class="d-flex justify-content-between small"><span class="fw-semibold">{{ x.product }}</span><span class="text-muted">{{ x.units }} units &middot; {{ x.sales|inr }}</span></div>
+  <div class="progress" style="height:10px;background:rgba(148,163,184,.15)"><div class="progress-bar" style="width:{{ (x.sales / top * 100)|round|int }}%;background:var(--grad)"></div></div></div>{% endfor %}
+  <p class="small text-muted mb-0">In real Hadoop the map and reduce steps run in parallel on many machines, and the framework performs the shuffle over the network. The idea is the same.</p></div>
+{% endblock %}

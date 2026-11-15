@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Unit V Concepts{% endblock %}
+{% block content %}
+<div class="admin-head"><div><div class="eyebrow">Unit V</div><h1 class="page-title">Advanced <span class="text-grad">Cloud Concepts</span></h1>
+<p class="text-muted mb-0">Short explainers. These are taught concepts, not features of the shop.</p></div></div>
+{% include "cloud/_nav.html" %}
+<div class="row g-3 mb-4">
+  <div class="col-md-6"><div class="glass feature"><div class="ic-box"><i class="bi bi-box"></i></div><h6>VirtualBox</h6><p class="small text-muted mb-2">A desktop hypervisor (type 2). Physical machine &rarr; host OS &rarr; VirtualBox &rarr; guest virtual machines.</p><p class="small mb-0"><b>Link to CloudCart:</b> a student can run the app in a VirtualBox VM to learn what EC2 does at large scale. EC2 uses a type 1 hypervisor close to the hardware.</p></div></div>
+  <div class="col-md-6"><div class="glass feature"><div class="ic-box cyan"><i class="bi bi-google"></i></div><h6>Google App Engine</h6><p class="small text-muted mb-2">A <b>PaaS</b>: upload your code and Google runs, scales and patches it. No servers to manage.</p><p class="small mb-0"><b>Contrast:</b> on EC2 (IaaS) we install and run Nginx, Gunicorn and updates ourselves.</p></div></div>
+  <div class="col-md-6"><div class="glass feature"><div class="ic-box violet"><i class="bi bi-hdd-stack"></i></div><h6>OpenStack</h6><p class="small text-muted mb-2">Open-source software to build a <b>private</b> or hybrid IaaS cloud (compute: Nova, storage: Swift/Cinder, network: Neutron).</p><p class="small mb-0"><b>Contrast:</b> EC2, S3 and VPC are AWS's proprietary counterparts of Nova, Swift and Neutron.</p></div></div>
+  <div class="col-md-6"><div class="glass feature"><div class="ic-box green"><i class="bi bi-diagram-3"></i></div><h6>Hadoop &amp; MapReduce</h6><p class="small text-muted mb-2">Hadoop stores big data across many machines (HDFS) and processes it in parallel with MapReduce.</p><p class="small mb-0"><a href="/cloud/mapreduce">Open the MapReduce simulation &rarr;</a></p></div></div>
+</div>
+<div class="glass glass-pad"><h5 class="mb-3">Cloud Federation</h5>
+  <div class="arch-flow mb-3"><span class="arch-node"><i class="bi bi-cloud"></i> Cloud A</span><i class="bi bi-arrow-left-right arch-arrow"></i><span class="arch-node"><i class="bi bi-share"></i> Federation layer (trust, identity, APIs)</span><i class="bi bi-arrow-left-right arch-arrow"></i><span class="arch-node"><i class="bi bi-cloud"></i> Cloud B</span></div>
+  <p class="small text-muted mb-0">Cloud federation lets separate providers share resources and services. If Cloud A is overloaded it can use capacity from Cloud B, with common identity, security and billing rules. CloudCart runs on one cloud (AWS) and does not implement federation; this diagram is for explanation.</p></div>
+{% endblock %}

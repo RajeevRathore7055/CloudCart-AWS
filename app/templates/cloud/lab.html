@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Cloud Lab{% endblock %}
+{% set tone = {'Configured and verified':'green','Configured but not verified':'amber','Optional':'cyan','Conceptual demonstration':'violet','Not configured':'red'} %}
+{% block content %}
+<div class="admin-head"><div><div class="eyebrow">Cloud Computing Dashboard</div><h1 class="page-title">CloudCart <span class="text-grad">Cloud Lab</span></h1>
+  <p class="text-muted mb-0">How this e-commerce application applies Cloud Computing concepts. Statuses are checked from the running app, never assumed.</p></div></div>
+{% include "cloud/_nav.html" %}
+
+<!-- 1. Architecture -->
+<section class="mb-5" id="architecture"><div class="section-head"><div><div class="eyebrow">Section 1</div><h2>Cloud Architecture</h2></div></div>
+  <div class="glass glass-pad">
+    <div class="arch-flow mb-3">
+      <span class="arch-node"><i class="bi bi-person"></i> User / Browser</span><i class="bi bi-arrow-right arch-arrow"></i>
+      <span class="arch-node"><i class="bi bi-globe2"></i> CloudFront <small class="text-muted">(optional CDN)</small></span><i class="bi bi-arrow-right arch-arrow"></i>
+      <span class="arch-node"><i class="bi bi-signpost-split"></i> Load Balancer <small class="text-muted">(optional)</small></span><i class="bi bi-arrow-right arch-arrow"></i>
+      <span class="arch-node"><i class="bi bi-hdd-network"></i> EC2: Nginx + FastAPI</span><i class="bi bi-arrow-right arch-arrow"></i>
+      <span class="arch-node"><i class="bi bi-database"></i> RDS MySQL</span>
+    </div>
+    <div class="arch-flow mb-3"><span class="text-muted small">Supporting services:</span>
+      <span class="arch-node"><i class="bi bi-bucket"></i> S3 images</span><span class="arch-node"><i class="bi bi-shield-lock"></i> IAM role</span>
+      <span class="arch-node"><i class="bi bi-diagram-2"></i> VPC + Security Groups</span><span class="arch-node"><i class="bi bi-activity"></i> CloudWatch</span></div>
+    <div class="row g-3 small text-muted">
+      <div class="col-md-4"><b class="text-light">Request path:</b> the browser calls CloudFront or the load balancer, which forwards to the EC2 server. FastAPI reads or writes MySQL on RDS and links to images in S3.</div>
+      <div class="col-md-4"><b class="text-light">Stateless design:</b> sessions live in a signed cookie, data in RDS, images in S3. Any new EC2 copy can serve any user. That is what makes scaling possible.</div>
+      <div class="col-md-4"><b class="text-light">Be honest in the viva:</b> CloudFront, load balancer and auto scaling are optional extensions. The cards below show which parts are really verified.</div>
+    </div>
+  </div></section>
+
+<!-- 2. Services -->
+<section class="mb-5" id="services"><div class="section-head"><div><div class="eyebrow">Section 2</div><h2>AWS Services</h2></div></div>
+  <div class="row g-3">
+    {% for c in cards %}<div class="col-md-6 col-xl-4 reveal"><div class="glass feature">
+      <div class="d-flex justify-content-between align-items-start"><div class="ic-box"><i class="bi {{ c.icon }}"></i></div><span class="chip {{ tone[c.status] }}">{{ c.status }}</span></div>
+      <h6>{{ c.name }}</h6>
+      <p class="small mb-1"><b>Purpose:</b> <span class="text-muted">{{ c.purpose }}</span></p>
+      <p class="small mb-1"><b>In CloudCart:</b> <span class="text-muted">{{ c.usage }}</span></p>
+      <p class="small mb-0 text-muted"><i class="bi bi-info-circle me-1"></i>{{ c.note }}</p>
+    </div></div>{% endfor %}
+  </div>
+  <p class="small text-muted mt-3">Status labels: <span class="chip green">Configured and verified</span> <span class="chip amber">Configured but not verified</span> <span class="chip cyan">Optional</span> <span class="chip violet">Conceptual demonstration</span> <span class="chip red">Not configured</span></p>
+</section>
+
+<!-- 3. Health -->
+<section class="mb-5" id="health"><div class="section-head"><div><div class="eyebrow">Section 3</div><h2>Cloud Health &amp; Monitoring</h2></div>
+  <button class="btn btn-ghost btn-sm" id="refreshStatus"><i class="bi bi-arrow-repeat"></i> Re-check now</button></div>
+  <div class="glass table-wrap"><table class="table cc-table" id="statusTable"><tbody>
+    <tr><td>Application health</td><td id="st-app">{{ status.application.status|upper }} <span class="text-muted small">(up {{ status.application.uptime_seconds }} s)</span></td></tr>
+    <tr><td>Database connectivity</td><td id="st-db">{% if status.database.connected %}<span class="chip green">Connected</span> {{ status.database.engine }}, {{ status.database.latency_ms }} ms{% else %}<span class="chip red">Not reachable</span>{% endif %}</td></tr>
+    <tr><td>S3 status</td><td id="st-s3">{{ status.s3.detail }}</td></tr>
+    <tr><td>AWS region</td><td id="st-region">{{ status.aws_region }}</td></tr>
+    <tr><td>EC2 (instance metadata)</td><td id="st-ec2">{% if status.ec2.running_on_ec2 %}Running on EC2: {{ status.ec2.instance_type }}, {{ status.ec2.availability_zone }}{% else %}Not running on EC2 (local run){% endif %}</td></tr>
+    <tr><td>CloudWatch</td><td id="st-cw"><span class="chip amber">Not verified</span> {{ status.cloudwatch.detail }}</td></tr>
+    <tr><td>Last health check</td><td id="st-time">{{ status.checked_at }}</td></tr>
+  </tbody></table></div>
+  <p class="small text-muted mt-2">No live AWS metrics are invented here. Real CPU graphs and alarms are shown in the CloudWatch console (see docs/CLOUDWATCH.md). This page exposes no passwords, keys, endpoints or instance IDs.</p>
+</section>
+
+<!-- 4. Service models -->
+<section class="mb-5" id="models"><div class="section-head"><div><div class="eyebrow">Section 4</div><h2>Cloud Service Models</h2></div></div>
+  <div class="row g-3">
+    <div class="col-md-4"><div class="glass feature"><div class="ic-box"><i class="bi bi-hdd-rack"></i></div><h6>IaaS: Infrastructure</h6><p class="small text-muted mb-0">Amazon EC2 gives a virtual server. We install the OS packages, Nginx, Python and the app ourselves. AWS manages the physical hardware; we manage everything above the virtual machine.</p></div></div>
+    <div class="col-md-4"><div class="glass feature"><div class="ic-box cyan"><i class="bi bi-layers"></i></div><h6>PaaS: Platform</h6><p class="small text-muted mb-0">A PaaS (Google App Engine, AWS Elastic Beanstalk) runs your code without you managing servers. CloudCart does <b>not</b> use a full PaaS. Amazon RDS is a managed service in the same spirit: AWS patches and backs up the database engine for us.</p></div></div>
+    <div class="col-md-4"><div class="glass feature"><div class="ic-box violet"><i class="bi bi-window"></i></div><h6>SaaS: Software</h6><p class="small text-muted mb-0">CloudCart itself is delivered to shoppers as SaaS: they use it in a browser, with nothing to install. Note the difference: AWS sells us IaaS and managed services; <b>we</b> provide SaaS on top.</p></div></div>
+  </div></section>
+
+<!-- 5. Virtualization -->
+<section class="mb-5" id="virtualization"><div class="section-head"><div><div class="eyebrow">Section 5</div><h2>Virtualization</h2></div></div>
+  <div class="glass glass-pad"><div class="arch-flow mb-3">
+    <span class="arch-node"><i class="bi bi-cpu"></i> Physical server</span><i class="bi bi-arrow-right arch-arrow"></i>
+    <span class="arch-node"><i class="bi bi-layers-half"></i> Hypervisor</span><i class="bi bi-arrow-right arch-arrow"></i>
+    <span class="arch-node"><i class="bi bi-pc-display"></i> Virtual machine</span><i class="bi bi-arrow-right arch-arrow"></i>
+    <span class="arch-node"><i class="bi bi-hdd-network"></i> EC2 instance</span><i class="bi bi-arrow-right arch-arrow"></i>
+    <span class="arch-node"><i class="bi bi-cloud"></i> CloudCart app</span></div>
+    <p class="small text-muted mb-0">One physical machine is split into many isolated virtual machines. Each gets its own virtual CPU, memory and I/O. That sharing is why a student can rent a <code>t3.micro</code> for a few hours, and why AWS can start (provision) it in about a minute. When we stop the instance the resources return to the pool.</p></div></section>
+
+<!-- 6. REST -->
+<section class="mb-5" id="rest"><div class="section-head"><div><div class="eyebrow">Section 6</div><h2>REST API Demonstration</h2></div></div>
+  <div class="row g-3">
+    <div class="col-lg-5"><div class="glass table-wrap"><table class="table cc-table"><thead><tr><th>Method</th><th>Endpoint</th></tr></thead><tbody>
+      <tr><td><span class="chip green">GET</span></td><td><a href="/api/products" target="_blank">/api/products</a></td></tr>
+      <tr><td><span class="chip green">GET</span></td><td><a href="/api/products/1" target="_blank">/api/products/{id}</a></td></tr>
+      <tr><td><span class="chip green">GET</span></td><td><a href="/docs" target="_blank">/docs</a> (Swagger UI)</td></tr>
+      <tr><td><span class="chip green">GET</span></td><td><a href="/health" target="_blank">/health</a></td></tr>
+      <tr><td><span class="chip green">GET</span></td><td><a href="/cloud/status" target="_blank">/cloud/status</a></td></tr></tbody></table></div>
+      <p class="small text-muted mt-2">REST = stateless HTTP calls to URLs (resources) that return JSON. Pages in CloudCart are rendered on the server and use HTML forms; the JSON API serves other programs, the load balancer's health check and the live status refresh on this page.</p></div>
+    <div class="col-lg-7"><div class="glass glass-pad"><div class="small text-muted mb-2">Example: <code>GET /api/products/{{ sample_json.id if sample_json else 1 }}</code></div>
+      <pre class="mb-0 small" style="color:#a5f3fc;white-space:pre-wrap">{{ (sample_json | tojson(indent=2)) if sample_json else '{ "detail": "No products yet" }' }}</pre></div></div>
+  </div></section>
+
+<!-- 7. DR -->
+<section class="mb-4" id="dr"><div class="section-head"><div><div class="eyebrow">Section 7</div><h2>Disaster Recovery</h2></div></div>
+  <div class="row g-3">
+    <div class="col-md-6 col-xl-3"><div class="glass feature"><div class="ic-box green"><i class="bi bi-database-check"></i></div><h6>Database backup</h6><p class="small text-muted mb-0">RDS automated backups (set to 7 days) plus manual snapshots allow restoring the database to a new instance.</p></div></div>
+    <div class="col-md-6 col-xl-3"><div class="glass feature"><div class="ic-box cyan"><i class="bi bi-arrow-repeat"></i></div><h6>Recovery</h6><p class="small text-muted mb-0">Restore the snapshot, then point <code>DATABASE_HOST</code> in <code>.env</code> to the restored instance.</p></div></div>
+    <div class="col-md-6 col-xl-3"><div class="glass feature"><div class="ic-box"><i class="bi bi-github"></i></div><h6>Redeployment</h6><p class="small text-muted mb-0">The code lives in GitHub. A new EC2 instance is rebuilt by <code>git clone</code> and <code>deploy/ec2_setup.sh</code>.</p></div></div>
+    <div class="col-md-6 col-xl-3"><div class="glass feature"><div class="ic-box violet"><i class="bi bi-bucket"></i></div><h6>Data availability</h6><p class="small text-muted mb-0">Product images in S3 survive loss of the server. Multi-AZ would add database failover (extra cost, not used).</p></div></div>
+  </div>
+  <div class="alert-cc mt-3" style="background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.35);color:#fde68a"><i class="bi bi-exclamation-triangle"></i>Recovery status: <b>&nbsp;not tested</b>. This page describes the procedure; do a restore test before claiming it works.</div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('refreshStatus').addEventListener('click', function () {
+  var b = this; b.disabled = true;
+  fetch('/cloud/status', {headers: {'Accept': 'application/json'}}).then(function (r) { return r.json(); }).then(function (d) {
+    document.getElementById('st-app').textContent = d.application.status.toUpperCase() + ' (up ' + d.application.uptime_seconds + ' s)';
+    document.getElementById('st-db').textContent = d.database.connected ? 'Connected: ' + d.database.engine + ', ' + d.database.latency_ms + ' ms' : 'Not reachable';
+    document.getElementById('st-s3').textContent = d.s3.detail;
+    document.getElementById('st-region').textContent = d.aws_region;
+    document.getElementById('st-ec2').textContent = d.ec2.running_on_ec2 ? 'Running on EC2: ' + d.ec2.instance_type + ', ' + d.ec2.availability_zone : 'Not running on EC2 (local run)';
+    document.getElementById('st-time').textContent = d.checked_at;
+  }).catch(function () { document.getElementById('st-time').textContent = 'Check failed (not verified)'; }).finally(function () { b.disabled = false; });
+});
+</script>
+{% endblock %}
